@@ -10,11 +10,14 @@ using System.Threading.Tasks;
 
 namespace EventSourceTransferEventEx
 {
+    [EventData]
     public class SimpleData
     {
         public string Name { get; set; }
         public int Address { get; set; }
     }
+
+    [EventData]
     public class NodeData
     {
         public string NodeName { get; set; }
@@ -64,8 +67,49 @@ namespace EventSourceTransferEventEx
 
     public class MyEventListener : EventListener
     {
+        private Dictionary<string, object> DictionaryFromKeyValues(object dictionary)
+        {
+            var ret = new Dictionary<string, object>();
+            foreach (var item in dictionary as IEnumerable<object>)
+            {
+                var keyValue = item as IDictionary<string, object>;
+                ret.Add((string)keyValue["Key"], keyValue["Value"]);
+            }
+            return ret;
+        }
+
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
+            switch (eventData.EventName)
+            {
+                case "LogArray":
+                    {
+                        string name = (string)eventData.Payload[0];
+                        var arrValues = (IEnumerable<int>)eventData.Payload[1];
+                        foreach (int arrValue in arrValues)
+                        {
+                            Console.WriteLine(arrValue);
+                        }
+                    } break;
+                case "LogNode":
+                    {
+                        string name = (string)eventData.Payload[0];
+                        var node = (IDictionary<string, object>)eventData.Payload[1];
+                        var nodeName = node["Name"];
+                        var nodeID = (int)node["NodeId"];
+                        var childrenIDs = (IEnumerable<int>)node["ChildrenIds"];
+                        var userValues = DictionaryFromKeyValues(node["UserValues"]);
+
+                    } break;
+                case "LogDictionary":
+                    {
+                        string name = (string)eventData.Payload[0];
+                        var keyValues = DictionaryFromKeyValues(eventData.Payload[1]);
+                        // Process the Dictionary
+
+                    }
+                    break;
+            }
             var id = eventData.ActivityId;
             var rid = eventData.RelatedActivityId;
             var rName = eventData.EventName;
