@@ -1,0 +1,1 @@
+c:\Code\EventTracing\EventTracing\EventTracing\bin\Debug\EventTracing.exe.config
